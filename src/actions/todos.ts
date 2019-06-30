@@ -1,14 +1,7 @@
 import { Dispatch } from 'redux';
 import axios from 'axios';
-import { ActionTypes } from './types';
-
-const url = 'https://jsonplaceholder.typicode.com/todos';
-
-export interface Todo {
-  id: number;
-  title: string;
-  completed: boolean;
-}
+import { ActionTypes } from './actionTypes';
+import { Todo } from '../reducers/index';
 
 export interface FetchTodosAction {
   type: ActionTypes.fetchTodos;
@@ -19,6 +12,8 @@ export interface DeleteTodoAction {
   type: ActionTypes.deleteTodo;
   payload: number;
 }
+
+const url = 'https://jsonplaceholder.typicode.com/todos';
 
 export const fetchTodos = () => {
   return async (dispatch: Dispatch) => {

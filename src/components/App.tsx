@@ -1,60 +1,43 @@
-import React from 'react';
-import { connect } from 'react-redux';
-import { Todo, fetchTodos, deleteTodo } from '../actions/index';
-import { StoreState } from '../reducers';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchTodos, deleteTodo } from '../actions';
+import { Todo, StoreState } from '../reducers';
 
-interface AppProps {
-  todos: Todo[];
-  fetchTodos: Function;
-  deleteTodo: typeof deleteTodo;
-}
-
-interface AppState {
-  fetching: boolean;
-}
-
-class _App extends React.Component<AppProps, AppState> {
-  constructor(props: AppProps) {
-    super(props);
-    this.state = { fetching: true };
-  }
-  componentDidUpdate(prevProps: AppProps): void {
-    if (!prevProps.todos.length && this.props.todos.length) {
-      this.setState({ fetching: false });
+export const App: React.FC = () => {
+  // create some local state with useState that will tell us if our fetch result is still loading
+  const [fetching, setFetching] = useState(false);
+  // redux hook that grabs a piece of the store (like mapStateToProps)
+  const todos = useSelector((state: StoreState) => state.todos);
+  // redux hook to get dispatch function. this is the alternative to using connect() with no second argument
+  // which gives dispatch passed into this component automatically as a prop.
+  const dispatch = useDispatch();
+  // redux hook that is called whenever todos.length is changed
+  useEffect(() => {
+    if (todos.length) {
+      setFetching(false);
     }
-  }
-  render() {
-    const curTodos = this.props.todos.map((todo: Todo) => (
+  }, [todos.length]);
+  // create an array of buttons that dispatch the deleteTodo action onClick
+  const curTodos = todos.map((todo: Todo) => (
+    <button
+      key={todo.id}
+      style={{ border: '1px solid black' }}
+      onClick={() => dispatch(deleteTodo(todo.id))}>
+      {todo.title}
+    </button>
+  ));
+  // the first button below dispatches the fetchTodos action and makes the LOADING text display while it's fetching.
+  return (
+    <div>
       <button
-        key={todo.id}
-        style={{ border: '1px solid black' }}
-        onClick={() => this.props.deleteTodo(todo.id)}>
-        {todo.title}
+        onClick={() => {
+          dispatch(fetchTodos());
+          setFetching(true);
+        }}>
+        fetch data !
       </button>
-    ));
-    console.log(curTodos);
-    return (
-      <div>
-        <button
-          onClick={() => {
-            this.props.fetchTodos();
-          }}>
-          fethhhh
-        </button>
-        {this.state.fetching ? 'LOADING' : null}
-        {curTodos}
-      </div>
-    );
-  }
-}
-
-const mapStateToProps = ({ todos }: StoreState): { todos: Todo[] } => {
-  return { todos };
+      {fetching ? 'LOADING' : null}
+      {curTodos}
+    </div>
+  );
 };
-
-export const App = connect(
-  // avoid export default bc simple export requires name to be exact
-  // a more typescript-y way of doing things.
-  mapStateToProps,
-  { fetchTodos, deleteTodo }
-)(_App);
